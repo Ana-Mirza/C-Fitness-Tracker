@@ -40,7 +40,7 @@ typedef struct data_point_t data_point_t;
 struct data_point_t
 {
   magnitude_t magnitude;
-  time_t time;
+  time_accel_t time;
 };
 /**
  * The size of a ring buffer.
@@ -48,7 +48,7 @@ struct data_point_t
  * can be contained in the buffer.
  * The buffer size must be a power of two.
 */
-#define RING_BUFFER_SIZE 16
+#define RING_BUFFER_SIZE 64
 
 #if (RING_BUFFER_SIZE & (RING_BUFFER_SIZE - 1)) != 0
 #error "RING_BUFFER_SIZE must be a power of two"

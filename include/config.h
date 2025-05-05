@@ -1,8 +1,8 @@
 #include <inttypes.h>
 
 // choose sqrt instead of math for a non-float dependent implementation
-#include "sqrt.h"
-// #include <math.h>
+// #include "sqrt.h"
+#include <math.h>
 
 // type for the accelerometer samples, this depends on your hardware
 // for example, if your accelerometer uses 12bits then an int16_t would suffice
@@ -13,12 +13,12 @@ typedef int16_t accel_t;
 // preferably, time should be in ms, if not, use timeScalingFactor in the preprocessing stage to adjust it to ms
 // example: a year worth of ms needs 35 bits, 32 bits allows you to store about 50 days of ms
 // as time doesn't go back, using unsigned integers makes sense
-typedef int32_t time_t;
+typedef int32_t time_accel_t;
 
 // magnitude of acceleration
 // this should be 1 bit bigger than accel_t
 // example: if the accelerometer works at 12 bits, magnitude should be 13 bits, therefore choosing int16_t for both will do
-typedef uint16_t magnitude_t;
+typedef uint32_t magnitude_t;
 
 // accumulator of magnitude, should be bigger than magnitude
 // the size depends on the length of the filter in the filtering stage
@@ -31,13 +31,13 @@ typedef int32_t accumulator_t;
 typedef uint16_t steps_t;
 
 // difference between min and max acceleration to detect motion
-#define MOTION_THRESHOLD 500
+#define MOTION_THRESHOLD 145
 
 // skip interpolation
 #define SKIP_INTERPOLATION
 
 // skip filtering step
-#define SKIP_FILTER
+// #define SKIP_FILTER
 
 // use this to allow dumping each stage on file, useful for debugging
 // #define DUMP_FILE
@@ -47,3 +47,13 @@ typedef uint16_t steps_t;
 #define DUMP_SCORING_FILE_NAME "scoring.csv"
 #define DUMP_DETECTION_FILE_NAME "detection.csv"
 #define DUMP_POSTPROC_FILE_NAME "postproc.csv"
+
+
+/**
+ * @brief Experimentally detected variables
+ * 
+ */
+#define OPT_WINDOWSIZE 38
+#define OPT_DETECTION_THRESHOLD 2
+#define OPT_DETECTION_THRESHOLD_FRAC 1
+#define OPT_TIME_THRESHOLD 280

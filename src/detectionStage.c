@@ -39,7 +39,7 @@ static void (*nextStage)(void);
 
 static magnitude_t mean = 0;
 static accumulator_t std = 0;
-static time_t count = 0;
+static time_accel_t count = 0;
 static int16_t threshold_int = 0;
 static int16_t threshold_frac = 6;
 
