@@ -36,12 +36,18 @@ SOFTWARE.
 static ring_buffer_t *inBuff;
 static ring_buffer_t *outBuff;
 static void (*nextStage)(void);
+static int motionThreshold = 150;
 
 void initMotionDetectStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void (*pNextStage)(void))
 {
     inBuff = pInBuff;
     outBuff = pOutBuff;
     nextStage = pNextStage;
+}
+
+void changeMotionThreshold(int16_t threshold)
+{
+    motionThreshold = threshold;
 }
 
 void motionDetectStage(void)
@@ -60,7 +66,7 @@ void motionDetectStage(void)
                 min = dp.magnitude;
         }
 
-        if (max - min > MOTION_THRESHOLD)
+        if (max - min > motionThreshold)
         {
             data_point_t dataPoint;
             ring_buffer_dequeue(inBuff, &dataPoint);

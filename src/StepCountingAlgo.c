@@ -75,6 +75,7 @@ void initAlgo()
     changeWindowSize(OPT_WINDOWSIZE);
     changeDetectionThreshold(OPT_DETECTION_THRESHOLD, OPT_DETECTION_THRESHOLD_FRAC);
     changeTimeThreshold(OPT_TIME_THRESHOLD);
+    changeMotionThreshold(MOTION_THRESHOLD);
 }
 
 void processSample(time_accel_t time, accel_t x, accel_t y, accel_t z)

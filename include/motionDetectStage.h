@@ -27,5 +27,6 @@ SOFTWARE.
 
 void initMotionDetectStage(ring_buffer_t *inBuf, ring_buffer_t *outBuf, void (*pNextStage)(void));
 void motionDetectStage(void);
+void changeMotionThreshold(int16_t threshold);
 
 #endif

@@ -30,9 +30,6 @@ typedef int32_t accumulator_t;
 // example: is the step count is reset every 24h and one walks no more than 20k / day (reasonable) -> 16 bits should be enough
 typedef uint16_t steps_t;
 
-// difference between min and max acceleration to detect motion
-#define MOTION_THRESHOLD 145
-
 // skip interpolation
 #define SKIP_INTERPOLATION
 
@@ -53,7 +50,8 @@ typedef uint16_t steps_t;
  * @brief Experimentally detected variables
  * 
  */
-#define OPT_WINDOWSIZE 38
-#define OPT_DETECTION_THRESHOLD 2
+#define MOTION_THRESHOLD 150 /* difference between min and max acceleration to detect motion */
+#define OPT_WINDOWSIZE 27
+#define OPT_DETECTION_THRESHOLD 3
 #define OPT_DETECTION_THRESHOLD_FRAC 1
-#define OPT_TIME_THRESHOLD 280
+#define OPT_TIME_THRESHOLD 475
