@@ -37,7 +37,7 @@ typedef uint16_t steps_t;
 // #define SKIP_FILTER
 
 // use this to allow dumping each stage on file, useful for debugging
-// #define DUMP_FILE
+#define DUMP_FILE
 #define DUMP_MAGNITUDE_FILE_NAME "magnitude.csv"
 #define DUMP_INTERPOLATED_FILE_NAME "interpolated.csv"
 #define DUMP_FILTERED_FILE_NAME "filtered.csv"
@@ -50,8 +50,8 @@ typedef uint16_t steps_t;
  * @brief Experimentally detected variables
  * 
  */
-#define MOTION_THRESHOLD 150 /* difference between min and max acceleration to detect motion */
-#define OPT_WINDOWSIZE 27
-#define OPT_DETECTION_THRESHOLD 3
+#define MOTION_THRESHOLD 300 /* difference between min and max acceleration to detect motion */
+#define OPT_WINDOWSIZE 28
+#define OPT_DETECTION_THRESHOLD 5
 #define OPT_DETECTION_THRESHOLD_FRAC 1
-#define OPT_TIME_THRESHOLD 475
+#define OPT_TIME_THRESHOLD 320
