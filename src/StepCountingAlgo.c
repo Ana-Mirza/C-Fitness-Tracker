@@ -73,7 +73,7 @@ static void increaseDistance()
 {
     /* compute distance dynamically */
     data_point_t lastDataPoint = getLastDataPoint();
-    distance +=  lastDataPoint.weight * lastDataPoint.orig_magnitude / (lastDataPoint.peak_time * lastDataPoint.peak_time) * 1000 * 1000 / 100;
+    distance += 1.5 * lastDataPoint.peak_time;
 }
 
 static void increaseMET() 
@@ -170,7 +170,10 @@ steps_t getSteps(void)
 }
 
 float getDistance(void) {
-    return steps * stride;
+    /* constant stride length distance computation */
+    float dist = steps * stride;
+
+    return distance / 1000; /* convert from ms to s*/
 }
 
 calorie_t getCalories(void) 
