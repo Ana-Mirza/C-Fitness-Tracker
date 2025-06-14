@@ -28,9 +28,23 @@ SOFTWARE.
 #include "config.h"
 
 /**
-    Initializes all buffers and everything the algorithm needs
+    This function initializes user health information.
+    @param gender
+    @param age
+    @param height meters
+    @param weight kg
 */
-void initAlgo(void);
+void initUserData(char* userGender, uint8_t userAge, uint8_t userHeight, uint8_t userWeight);
+
+/**
+    Initializes all buffers and everything the algorithm needs.
+    This function takes user information as input.
+    @param gender
+    @param age
+    @param height meters
+    @param weight kg
+*/
+void initAlgo(char* gender, uint8_t age, uint8_t height, uint8_t weight);
 
 /**
     This function takes the raw accelerometry data and computes the entire algorithm

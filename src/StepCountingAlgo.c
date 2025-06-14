@@ -30,12 +30,19 @@ SOFTWARE.
 #include "scoringStage.h"
 #include "detectionStage.h"
 #include "postProcessingStage.h"
-// General data
+
+/* General data */
+static met_t met;
 static steps_t steps;
 static float distance;
-static met_t met;
 
-// Buffers
+/* User data */
+static gender_t gender;
+static age_t age;
+static height_t height;
+static weight_t weight;
+
+/* Buffers */
 static ring_buffer_t rawBuf;
 static ring_buffer_t ppBuf;
 static ring_buffer_t mdBuf;
@@ -55,19 +62,29 @@ static void increaseStepCallback(void)
     increaseDistance();
 }
 
-static void increaseDistance() {
+static void increaseDistance() 
+{
     data_point_t lastDataPoint = getLastDataPoint();
     distance +=  lastDataPoint.weight * lastDataPoint.orig_magnitude / (lastDataPoint.peak_time * lastDataPoint.peak_time) * 1000 * 1000 / 100;
 }
 
-static void increaseMET() {
+static void increaseMET() 
+{
     data_point_t lastDataPoint = getLastDataPoint();
     met += lastDataPoint.met * (lastDataPoint.peak_time / 60); /* time in minutes */
 }
 
-void initAlgo()
+void initUserData(char* userGender, uint8_t userAge, uint8_t userHeight, uint8_t userWeight) 
 {
-    // init buffers
+    gender = userGender;
+    age = userAge;
+    height = userHeight;
+    weight = userWeight;
+}
+
+void initAlgo(char* gender, uint8_t age, uint8_t height, uint8_t weight)
+{
+    /* Init buffers */
     ring_buffer_init(&rawBuf);
     ring_buffer_init(&ppBuf);
     ring_buffer_init(&mdBuf);
@@ -89,7 +106,10 @@ void initAlgo()
     initDetectionStage(&peakScoreBuf, &peakBuf, postProcessingStage);
     initPostProcessingStage(&peakBuf, &increaseStepCallback);
 
-    /* set parameters */
+    /* Set user data */
+    initUserData(gender, age, height, weight);
+
+    /* Set parameters */
     changeWindowSize(OPT_WINDOWSIZE);
     changeDetectionThreshold(OPT_DETECTION_THRESHOLD, OPT_DETECTION_THRESHOLD_FRAC);
     changeTimeThreshold(OPT_TIME_THRESHOLD);
