@@ -31,7 +31,7 @@ static FILE
 static FILE *scoringFile;
 #endif
 
-// Returns true if adding a+b would overflow
+// Returns true if adding overflows
 int will_overflow(int32_t a, int32_t b) {
     return ((b > 0) && (a > INT32_MAX - b)) || 
            ((b < 0) && (a < INT32_MIN - b));
@@ -75,14 +75,12 @@ void scoringStage(void)
         for (ring_buffer_size_t i = 0; i < midpoint; i++)
         {
             ring_buffer_peek(inBuff, &dataPoint, i);
-            // diffLeft += (midpointData.magnitude - dataPoint.magnitude);
             uint32_t diff = midpointData.magnitude - dataPoint.magnitude;
             diffLeft = safe_add(diffLeft, diff);
         }
         for (ring_buffer_size_t j = midpoint + 1; j < windowSize; j++)
         {
             ring_buffer_peek(inBuff, &dataPoint, j);
-            // diffRight += midpointData.magnitude - dataPoint.magnitude;
             uint32_t diff = midpointData.magnitude - dataPoint.magnitude;
             diffRight = safe_add(diffRight, diff);
         }
