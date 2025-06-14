@@ -78,9 +78,9 @@ steps_t getSteps(void);
 float getDistance(void);
 
 /**
-    Returns the metabolic rate
-    @return current speed
+    Returns the calories burned
+    @return current caorie burn
 */
-met_t getMET(void);
+calorie_t getCalories(void);
 
 #endif

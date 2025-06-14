@@ -26,6 +26,8 @@ SOFTWARE.
 #include "config.h"
 #include "ringbuffer.h"
 
+extern uint32_t currentTime;
+
 void initPreProcessStage(ring_buffer_t *inBuff, ring_buffer_t *outBuff, void (*pNextStage)(void));
 void preProcessSample(time_accel_t time, accel_t x, accel_t y, accel_t z);
 void resetPreProcess(void);

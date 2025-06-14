@@ -37,6 +37,7 @@ static void (*nextStage)(void);
 static uint8_t samplingPeriod = 80;    //in ms, this can be smaller than the actual sampling frequency, but it will result in more computations
 static uint16_t timeScalingFactor = 1; //use this for adjusting time to ms, in case the clock has higher precision
 static time_accel_t lastSampleTime = -1;
+uint32_t currentTime = 0;
 
 void initPreProcessStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void (*pNextStage)(void))
 {
@@ -78,6 +79,9 @@ static void outPutDataPoint(data_point_t dp)
 void preProcessSample(time_accel_t time, accel_t x, accel_t y, accel_t z)
 {
     time = time / timeScalingFactor;
+
+    /* Update current time */
+    currentTime = time;
 
     magnitude_t magnitude = (magnitude_t)sqrt((accumulator_t)(x * x + y * y + z * z));
     data_point_t dataPoint;

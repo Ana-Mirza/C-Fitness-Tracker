@@ -31,8 +31,15 @@ SOFTWARE.
 #include "detectionStage.h"
 #include "postProcessingStage.h"
 
+#include "string.h"
+
+#define STRIDECONST 0.414
+
 /* General data */
 static met_t met;
+static float bmrPerMinute;
+static float stride;
+
 static steps_t steps;
 static float distance;
 
@@ -64,6 +71,7 @@ static void increaseStepCallback(void)
 
 static void increaseDistance() 
 {
+    /* compute distance dynamically */
     data_point_t lastDataPoint = getLastDataPoint();
     distance +=  lastDataPoint.weight * lastDataPoint.orig_magnitude / (lastDataPoint.peak_time * lastDataPoint.peak_time) * 1000 * 1000 / 100;
 }
@@ -71,15 +79,26 @@ static void increaseDistance()
 static void increaseMET() 
 {
     data_point_t lastDataPoint = getLastDataPoint();
-    met += lastDataPoint.met * (lastDataPoint.peak_time / 60); /* time in minutes */
+    met += lastDataPoint.met * (lastDataPoint.peak_time / (60)); /* time in minutes */
 }
 
 void initUserData(char* userGender, uint8_t userAge, uint8_t userHeight, uint8_t userWeight) 
 {
+    /* init user information */
     gender = userGender;
     age = userAge;
     height = userHeight;
     weight = userWeight;
+
+    /* init mbr */
+    float bmr = strcmp(gender, "F") == 0 ? 
+            (9.56 * weight) + (1.85 * height) - (4.68 * age) + 655 :
+            (13.75 * weight) + (5 * height) - (6.76 * age) + 66;
+    bmrPerMinute = bmr / (24 * 60); /* convert to bmr per min */
+
+    /* init stride length */
+    float height_float = height;
+    stride = (height_float / 100) * STRIDECONST;
 }
 
 void initAlgo(char* gender, uint8_t age, uint8_t height, uint8_t weight)
@@ -114,6 +133,8 @@ void initAlgo(char* gender, uint8_t age, uint8_t height, uint8_t weight)
     changeDetectionThreshold(OPT_DETECTION_THRESHOLD, OPT_DETECTION_THRESHOLD_FRAC);
     changeTimeThreshold(OPT_TIME_THRESHOLD);
     changeMotionThreshold(MOTION_THRESHOLD);
+
+    currentTime = 0;
 }
 
 void processSample(time_accel_t time, accel_t x, accel_t y, accel_t z)
@@ -149,9 +170,11 @@ steps_t getSteps(void)
 }
 
 float getDistance(void) {
-    return distance;
+    return steps * stride;
 }
 
-met_t getMET(void) {
-    return met;
+calorie_t getCalories(void) 
+{
+    calorie_t kcal = met * bmrPerMinute / 1000; /* convert ot kcal */
+    return kcal;
 }

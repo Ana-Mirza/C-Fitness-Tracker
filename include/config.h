@@ -39,6 +39,9 @@ typedef uint32_t distance_t;
 // metabolic rate type
 typedef uint32_t met_t;
 
+// calorie burn
+typedef float calorie_t;
+
 // user gender
 typedef char* gender_t;
 
