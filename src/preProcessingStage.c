@@ -83,6 +83,8 @@ void preProcessSample(time_accel_t time, accel_t x, accel_t y, accel_t z)
     data_point_t dataPoint;
     dataPoint.time = time;
     dataPoint.magnitude = magnitude;
+    dataPoint.orig_magnitude = magnitude;
+    dataPoint.met = 0;
 
 #ifdef DUMP_FILE
     if (magnitudeFile)

@@ -31,6 +31,20 @@ static FILE
 static FILE *scoringFile;
 #endif
 
+// Returns true if adding a+b would overflow
+int will_overflow(int32_t a, int32_t b) {
+    return ((b > 0) && (a > INT32_MAX - b)) || 
+           ((b < 0) && (a < INT32_MIN - b));
+}
+
+// Safe addition
+int32_t safe_add(int64_t a, int64_t b) {
+    if (will_overflow(a, b)) {
+        return (b > 0) ? INT32_MAX : INT32_MIN;
+    }
+    return a + b;
+}
+
 static ring_buffer_t *inBuff;
 static ring_buffer_t *outBuff;
 static void (*nextStage)(void);
@@ -61,17 +75,22 @@ void scoringStage(void)
         for (ring_buffer_size_t i = 0; i < midpoint; i++)
         {
             ring_buffer_peek(inBuff, &dataPoint, i);
-            diffLeft += midpointData.magnitude - dataPoint.magnitude;
+            // diffLeft += (midpointData.magnitude - dataPoint.magnitude);
+            uint32_t diff = midpointData.magnitude - dataPoint.magnitude;
+            diffLeft = safe_add(diffLeft, diff);
         }
         for (ring_buffer_size_t j = midpoint + 1; j < windowSize; j++)
         {
             ring_buffer_peek(inBuff, &dataPoint, j);
-            diffRight += midpointData.magnitude - dataPoint.magnitude;
+            // diffRight += midpointData.magnitude - dataPoint.magnitude;
+            uint32_t diff = midpointData.magnitude - dataPoint.magnitude;
+            diffRight = safe_add(diffRight, diff);
         }
-        magnitude_t scorePeak = (diffLeft + diffRight) / (windowSize - 1);
+        magnitude_t scorePeak = safe_add(diffLeft, diffRight) / (windowSize - 1);
         data_point_t out;
         out.time = midpointData.time;
         out.magnitude = scorePeak;
+        out.orig_magnitude = midpointData.orig_magnitude;
         ring_buffer_queue(outBuff, out);
         ring_buffer_dequeue(inBuff, &midpointData);
         (*nextStage)();
@@ -79,7 +98,7 @@ void scoringStage(void)
 #ifdef DUMP_FILE
         if (scoringFile)
         {
-            if (!fprintf(scoringFile, "%lld, %lld\n", out.time, out.magnitude))
+            if (!fprintf(scoringFile, "%lld, %lld, %lld\n", out.time, out.magnitude, out.orig_magnitude))
                 puts("error writing file");
             fflush(scoringFile);
         }

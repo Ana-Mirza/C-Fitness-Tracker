@@ -32,6 +32,9 @@ SOFTWARE.
 #include "postProcessingStage.h"
 // General data
 static steps_t steps;
+static float distance;
+static met_t met;
+
 // Buffers
 static ring_buffer_t rawBuf;
 static ring_buffer_t ppBuf;
@@ -42,9 +45,24 @@ static ring_buffer_t smoothBuf;
 static ring_buffer_t peakScoreBuf;
 static ring_buffer_t peakBuf;
 
+static void increaseMET();
+static void increaseDistance();
+ 
 static void increaseStepCallback(void)
 {
     steps++;
+    increaseMET();
+    increaseDistance();
+}
+
+static void increaseDistance() {
+    data_point_t lastDataPoint = getLastDataPoint();
+    distance +=  lastDataPoint.weight * lastDataPoint.orig_magnitude / (lastDataPoint.peak_time * lastDataPoint.peak_time) * 1000 * 1000 / 100;
+}
+
+static void increaseMET() {
+    data_point_t lastDataPoint = getLastDataPoint();
+    met += lastDataPoint.met * (lastDataPoint.peak_time / 60); /* time in minutes */
 }
 
 void initAlgo()
@@ -86,6 +104,8 @@ void processSample(time_accel_t time, accel_t x, accel_t y, accel_t z)
 void resetSteps(void)
 {
     steps = 0;
+    distance = 0;
+    met = 0;
 }
 
 void resetAlgo(void)
@@ -106,4 +126,12 @@ void resetAlgo(void)
 steps_t getSteps(void)
 {
     return steps;
+}
+
+float getDistance(void) {
+    return distance;
+}
+
+met_t getMET(void) {
+    return met;
 }

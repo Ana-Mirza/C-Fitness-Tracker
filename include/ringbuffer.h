@@ -39,8 +39,13 @@ typedef struct data_point_t data_point_t;
 
 struct data_point_t
 {
+  magnitude_t orig_magnitude;
   magnitude_t magnitude;
   time_accel_t time;
+  length_t length;
+  float weight;
+  met_t met;
+  time_accel_t peak_time; /* time since last peak detected */
 };
 /**
  * The size of a ring buffer.

@@ -18,7 +18,10 @@ typedef int32_t time_accel_t;
 // magnitude of acceleration
 // this should be 1 bit bigger than accel_t
 // example: if the accelerometer works at 12 bits, magnitude should be 13 bits, therefore choosing int16_t for both will do
-typedef uint32_t magnitude_t;
+typedef uint64_t magnitude_t;
+
+// length of step
+typedef uint32_t length_t;
 
 // accumulator of magnitude, should be bigger than magnitude
 // the size depends on the length of the filter in the filtering stage
@@ -29,6 +32,12 @@ typedef int32_t accumulator_t;
 // the size of this depends on what is the maximum number of steps you are willing to show and store
 // example: is the step count is reset every 24h and one walks no more than 20k / day (reasonable) -> 16 bits should be enough
 typedef uint16_t steps_t;
+
+// distance count type
+typedef uint32_t distance_t;
+
+// metabolic rate type
+typedef uint32_t met_t;
 
 // skip interpolation
 #define SKIP_INTERPOLATION

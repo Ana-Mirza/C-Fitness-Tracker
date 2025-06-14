@@ -90,7 +90,7 @@ void detectionStage(void)
 #ifdef DUMP_FILE
                 if (detectionFile)
                 {
-                    if (!fprintf(detectionFile, "%lld, %lld\n", dataPoint.time, dataPoint.magnitude))
+                    if (!fprintf(detectionFile, "%lld, %lld, %lld\n", dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude))
                         puts("error writing file");
                     fflush(detectionFile);
                 }
@@ -111,4 +111,8 @@ void changeDetectionThreshold(int16_t whole, int16_t frac)
 {
     threshold_int = whole;
     threshold_frac = frac;
+}
+
+magnitude_t getMagAvg(void) {
+    return mean;
 }

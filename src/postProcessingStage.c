@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include "detectionStage.h"
 
 #include "postProcessingStage.h"
 #ifdef DUMP_FILE
@@ -61,13 +62,44 @@ void postProcessingStage(void)
         {
             if ((dataPoint.time - lastDataPoint.time) > timeThreshold)
             {
+                /* Weighted step stripe */
+                int magAvg = getMagAvg();
+
+                if (dataPoint.magnitude < magAvg) {
+                    dataPoint.weight = 0.5;
+                } else if (dataPoint.magnitude == magAvg) {
+                    dataPoint.weight = 1.0;
+                } else if (dataPoint.magnitude > magAvg) {
+                    dataPoint.weight = 1.5;
+                }
+
+                /* Peak time interval */
+                dataPoint.peak_time = dataPoint.time - lastDataPoint.time;
+
+                /* Compute MET constant */
+                if (dataPoint.orig_magnitude < 500) {
+                    dataPoint.met = 2;
+                } else if (dataPoint.orig_magnitude < 1000) {
+                    dataPoint.met = 4;
+                } else if (dataPoint.orig_magnitude < 1500) {
+                    dataPoint.met = 9;
+                } else if (dataPoint.orig_magnitude < 2000) {
+                    dataPoint.met = 12;
+                } else if (dataPoint.orig_magnitude < 2500) {
+                    dataPoint.met = 17;
+                } else if (dataPoint.orig_magnitude > 2500) {
+                    dataPoint.met = 23;
+                }
+
                 lastDataPoint = dataPoint;
                 (*stepCallback)();
 
 #ifdef DUMP_FILE
                 if (postProcFile)
                 {
-                    if (!fprintf(postProcFile, "%lld, %lld\n", dataPoint.time, dataPoint.magnitude))
+                    if (!fprintf(postProcFile, "%lld, %lld, %lld, %lld, %lld, %f\n", 
+                        dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude, dataPoint.met, dataPoint.peak_time,
+                        dataPoint.weight))
                         puts("error writing file");
                     fflush(postProcFile);
                 }
@@ -94,3 +126,8 @@ void changeTimeThreshold(int16_t thresh)
 {
     timeThreshold = thresh;
 }
+
+data_point_t getLastDataPoint(void) {
+    return lastDataPoint;
+}
+

@@ -57,4 +57,16 @@ void resetAlgo(void);
 */
 steps_t getSteps(void);
 
+/**
+    Returns the distance in meters
+    @return distance walked
+*/
+float getDistance(void);
+
+/**
+    Returns the metabolic rate
+    @return current speed
+*/
+met_t getMET(void);
+
 #endif

@@ -37,10 +37,11 @@ static ring_buffer_t *outBuff;
 static void (*nextStage)(void);
 
 /*
+
 FIR filter designed with
 http://t-filter.appspot.com
 
-sampling frequency: 12.5 Hz
+sampling frequency: 50 Hz
 
 fixed point precision: 32 bits
 
@@ -49,21 +50,35 @@ fixed point precision: 32 bits
   desired ripple = 5 dB
   actual ripple = n/a
 
-* 4 Hz - 6.25 Hz
+* 4 Hz - 25 Hz
   gain = 0
   desired attenuation = -10 dB
   actual attenuation = n/a
 
 */
-#define FILTER_TAP_NUM 7
-static magnitude_t filter_taps[FILTER_TAP_NUM] = {
-    -2696,
-    -3734,
-    11354,
-    17457,
-    11354,
-    -3734,
-    -2696};
+
+#define FILTER_TAP_NUM 17
+
+static int filter_taps[FILTER_TAP_NUM] = {
+  -281468814,
+  106520334,
+  127255214,
+  162830244,
+  205727178,
+  248615023,
+  284705529,
+  308612275,
+  316959956,
+  308612275,
+  284705529,
+  248615023,
+  205727178,
+  162830244,
+  127255214,
+  106520334,
+  -281468814
+};
+
 
 void initFilterStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void (*pNextStage)(void))
 {
@@ -92,18 +107,20 @@ void filterStage(void)
             sum += dataPoint.magnitude * filter_taps[i];
         }
         out.magnitude = sum >> 16;
+        out.orig_magnitude = dataPoint.orig_magnitude;
 
         ring_buffer_dequeue(inBuff, &dataPoint);
         ring_buffer_queue(outBuff, out);
-        (*nextStage)();
 
 #ifdef DUMP_FILE
         if (filteredFile)
         {
-            if (!fprintf(filteredFile, "%lld, %lld\n", out.time, out.magnitude))
+            if (!fprintf(filteredFile, "%ld, %ld, %ld\n", out.time, out.magnitude, out.orig_magnitude))
                 puts("error writing file");
             fflush(filteredFile);
         }
 #endif
+
+        (*nextStage)();
     }
 }

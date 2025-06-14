@@ -29,5 +29,6 @@ void initDetectionStage(ring_buffer_t *inBuff, ring_buffer_t *outBuff, void (*ne
 void detectionStage(void);
 void resetDetection(void);
 void changeDetectionThreshold(int16_t whole, int16_t frac);
+magnitude_t getMagAvg(void);
 
 #endif
