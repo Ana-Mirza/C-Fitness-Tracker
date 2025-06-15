@@ -83,7 +83,16 @@ void preProcessSample(time_accel_t time, accel_t x, accel_t y, accel_t z)
     /* Update current time */
     currentTime = time;
 
-    magnitude_t magnitude = (magnitude_t)sqrt((accumulator_t)(x * x + y * y + z * z));
+    /* convert acc data to float */
+    float acc_x = (float)x / 100;
+    float acc_y = (float)y / 100;
+    float acc_z = (float)z / 100;
+
+    // accel_t acc_x = x;
+    // accel_t acc_y = y;
+    // accel_t acc_z = z; 
+
+    magnitude_t magnitude = (magnitude_t)sqrt((accumulator_t)(acc_x * acc_x + acc_y * acc_y + acc_z * acc_z));
     data_point_t dataPoint;
     dataPoint.time = time;
     dataPoint.magnitude = magnitude;

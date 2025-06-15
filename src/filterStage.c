@@ -43,40 +43,36 @@ http://t-filter.appspot.com
 
 sampling frequency: 50 Hz
 
-fixed point precision: 32 bits
+fixed point precision: 16 bits
 
 * 0 Hz - 3 Hz
   gain = 1
   desired ripple = 5 dB
   actual ripple = n/a
 
-* 4 Hz - 25 Hz
+* 4 Hz - 12.5 Hz
   gain = 0
   desired attenuation = -10 dB
   actual attenuation = n/a
 
 */
 
-#define FILTER_TAP_NUM 17
+#define FILTER_TAP_NUM 13
 
 static int filter_taps[FILTER_TAP_NUM] = {
-  -281468814,
-  106520334,
-  127255214,
-  162830244,
-  205727178,
-  248615023,
-  284705529,
-  308612275,
-  316959956,
-  308612275,
-  284705529,
-  248615023,
-  205727178,
-  162830244,
-  127255214,
-  106520334,
-  -281468814
+  -260015,
+  1609572,
+  -5275953,
+  11986707,
+  -20646348,
+  28240923,
+  -31270090,
+  28240923,
+  -20646348,
+  11986707,
+  -5275953,
+  1609572,
+  -260015
 };
 
 

@@ -48,6 +48,8 @@ void initDetectionStage(ring_buffer_t *pInBuff, ring_buffer_t *peakBufIn, void (
     inBuff = pInBuff;
     outBuff = peakBufIn;
     nextStage = pNextStage;
+    mean = 0;
+    std = 0;
 
 #ifdef DUMP_FILE
     detectionFile = fopen(DUMP_DETECTION_FILE_NAME, "w+");
@@ -90,8 +92,12 @@ void detectionStage(void)
 #ifdef DUMP_FILE
                 if (detectionFile)
                 {
-                    if (!fprintf(detectionFile, "%lld, %lld, %lld\n", dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude))
-                        puts("error writing file");
+                    if (!fprintf(detectionFile, "%lld, %lld, %lld\n",
+                         dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude))
+                         puts("error writing file");
+                    // if (!fprintf(detectionFile, "mean=%lld, std=%lld, threshold_int=%lld threshold_frac=%lld\n",
+                    //     mean, std, threshold_int, threshold_frac))
+                    //     puts("error writing file");
                     fflush(detectionFile);
                 }
 #endif

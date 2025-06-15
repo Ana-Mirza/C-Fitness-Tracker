@@ -31,6 +31,7 @@ static FILE
 static FILE *postProcFile;
 #endif
 
+static steps_t stepCounter;
 static ring_buffer_t *inBuff;
 static data_point_t lastDataPoint;
 static int16_t timeThreshold = 300; // in ms, this discards steps that are too close in time, 3 steps /s is a reasonable maximum
@@ -40,6 +41,7 @@ void initPostProcessingStage(ring_buffer_t *pInBuff, void (*stepCallbackIn)(void
 {
     inBuff = pInBuff;
     stepCallback = stepCallbackIn;
+    stepCounter = 0;
     lastDataPoint.time = 0;
     lastDataPoint.magnitude = 0;
 
@@ -62,14 +64,17 @@ void postProcessingStage(void)
         {
             if ((dataPoint.time - lastDataPoint.time) > timeThreshold)
             {
-                /* Weighted step stripe */
-                int magAvg = getMagAvg();
+                stepCounter++;
 
-                if (dataPoint.magnitude < magAvg) {
+                /* Weighted step stripe */
+                float magAvg = 1.6;
+                float stepsPerSec = (float)stepCounter / ((float)dataPoint.time / 1000);
+
+                if (stepsPerSec < magAvg) {
                     dataPoint.weight = 0.5;
-                } else if (dataPoint.magnitude == magAvg) {
+                } else if (stepsPerSec == magAvg) {
                     dataPoint.weight = 1.0;
-                } else if (dataPoint.magnitude > magAvg) {
+                } else if (stepsPerSec > magAvg) {
                     dataPoint.weight = 1.5;
                 }
 
@@ -77,17 +82,17 @@ void postProcessingStage(void)
                 dataPoint.peak_time = dataPoint.time - lastDataPoint.time;
 
                 /* Compute MET constant */
-                if (dataPoint.orig_magnitude < 500) {
+                if (dataPoint.orig_magnitude < 5) {
                     dataPoint.met = 2;
-                } else if (dataPoint.orig_magnitude < 1000) {
+                } else if (dataPoint.orig_magnitude < 10) {
                     dataPoint.met = 4;
-                } else if (dataPoint.orig_magnitude < 1500) {
+                } else if (dataPoint.orig_magnitude < 15) {
                     dataPoint.met = 9;
-                } else if (dataPoint.orig_magnitude < 2000) {
+                } else if (dataPoint.orig_magnitude < 20) {
                     dataPoint.met = 12;
-                } else if (dataPoint.orig_magnitude < 2500) {
+                } else if (dataPoint.orig_magnitude < 25) {
                     dataPoint.met = 17;
-                } else if (dataPoint.orig_magnitude > 2500) {
+                } else if (dataPoint.orig_magnitude > 25) {
                     dataPoint.met = 23;
                 }
 
@@ -97,9 +102,8 @@ void postProcessingStage(void)
 #ifdef DUMP_FILE
                 if (postProcFile)
                 {
-                    if (!fprintf(postProcFile, "%lld, %lld, %lld, %lld, %lld, %f\n", 
-                        dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude, dataPoint.met, dataPoint.peak_time,
-                        dataPoint.weight))
+                    if (!fprintf(postProcFile, "%lld, %lld, %lld, %lld, %lld, %f, %f\n", 
+                        dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude, dataPoint.met, dataPoint.peak_time, dataPoint.weight, stepsPerSec))
                         puts("error writing file");
                     fflush(postProcFile);
                 }
@@ -120,6 +124,7 @@ void resetPostProcess(void)
 {
     lastDataPoint.magnitude = 0;
     lastDataPoint.time = 0;
+    stepCounter = 0;
 }
 
 void changeTimeThreshold(int16_t thresh)

@@ -73,7 +73,7 @@ static void increaseDistance()
 {
     /* compute distance dynamically */
     data_point_t lastDataPoint = getLastDataPoint();
-    distance += 1.5 * lastDataPoint.peak_time;
+    distance += lastDataPoint.weight * lastDataPoint.peak_time;
 }
 
 static void increaseMET() 

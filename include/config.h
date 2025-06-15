@@ -18,7 +18,7 @@ typedef int32_t time_accel_t;
 // magnitude of acceleration
 // this should be 1 bit bigger than accel_t
 // example: if the accelerometer works at 12 bits, magnitude should be 13 bits, therefore choosing int16_t for both will do
-typedef uint64_t magnitude_t;
+typedef int64_t magnitude_t;
 
 // length of step
 typedef uint32_t length_t;
@@ -58,7 +58,7 @@ typedef uint8_t weight_t;
 #define SKIP_INTERPOLATION
 
 // skip filtering step
-// #define SKIP_FILTER
+#define SKIP_FILTER
 
 // use this to allow dumping each stage on file, useful for debugging
 #define DUMP_FILE
@@ -74,8 +74,8 @@ typedef uint8_t weight_t;
  * @brief Experimentally detected variables
  * 
  */
-#define MOTION_THRESHOLD 300 /* difference between min and max acceleration to detect motion */
-#define OPT_WINDOWSIZE 28
-#define OPT_DETECTION_THRESHOLD 5
-#define OPT_DETECTION_THRESHOLD_FRAC 1
+#define MOTION_THRESHOLD 1 /* difference between min and max acceleration to detect motion */
+#define OPT_WINDOWSIZE 26
+#define OPT_DETECTION_THRESHOLD 1
+#define OPT_DETECTION_THRESHOLD_FRAC 8
 #define OPT_TIME_THRESHOLD 320

@@ -96,7 +96,7 @@ void scoringStage(void)
 #ifdef DUMP_FILE
         if (scoringFile)
         {
-            if (!fprintf(scoringFile, "%lld, %lld, %lld\n", out.time, out.magnitude, out.orig_magnitude))
+            if (!fprintf(scoringFile, "%lld, %lld, %lld, %lld\n", out.time, out.magnitude, midpointData.magnitude, out.orig_magnitude))
                 puts("error writing file");
             fflush(scoringFile);
         }
