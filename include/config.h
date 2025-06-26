@@ -58,7 +58,7 @@ typedef uint8_t weight_t;
 #define SKIP_INTERPOLATION
 
 // skip filtering step
-#define SKIP_FILTER
+// #define SKIP_FILTER
 
 // use this to allow dumping each stage on file, useful for debugging
 #define DUMP_FILE

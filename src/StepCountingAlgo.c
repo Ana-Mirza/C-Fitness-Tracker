@@ -38,10 +38,14 @@ SOFTWARE.
 /* General data */
 static met_t met;
 static float bmrPerMinute;
-static float stride;
+float stride;
 
 static steps_t steps;
 static float distance;
+
+/* Extern variables */
+float bmr;
+double kcalories;
 
 /* User data */
 static gender_t gender;
@@ -65,7 +69,6 @@ static void increaseDistance();
 static void increaseStepCallback(void)
 {
     steps++;
-    increaseMET();
     increaseDistance();
 }
 
@@ -73,13 +76,8 @@ static void increaseDistance()
 {
     /* compute distance dynamically */
     data_point_t lastDataPoint = getLastDataPoint();
-    distance += lastDataPoint.weight * lastDataPoint.peak_time;
-}
 
-static void increaseMET() 
-{
-    data_point_t lastDataPoint = getLastDataPoint();
-    met += lastDataPoint.met * (lastDataPoint.peak_time / (60)); /* time in minutes */
+    distance += lastDataPoint.orig_magnitude * lastDataPoint.weight;
 }
 
 void initUserData(char* userGender, uint8_t userAge, uint8_t userHeight, uint8_t userWeight) 
@@ -89,20 +87,24 @@ void initUserData(char* userGender, uint8_t userAge, uint8_t userHeight, uint8_t
     age = userAge;
     height = userHeight;
     weight = userWeight;
+    kcalories = 0;
 
     /* init mbr */
-    float bmr = strcmp(gender, "F") == 0 ? 
+    bmr = strcmp(gender, "F") == 0 ? 
             (9.56 * weight) + (1.85 * height) - (4.68 * age) + 655 :
             (13.75 * weight) + (5 * height) - (6.76 * age) + 66;
     bmrPerMinute = bmr / (24 * 60); /* convert to bmr per min */
 
-    /* init stride length */
+    /* init static stride length */
     float height_float = height;
     stride = (height_float / 100) * STRIDECONST;
 }
 
 void initAlgo(char* gender, uint8_t age, uint8_t height, uint8_t weight)
 {
+    /* Set user data */
+    initUserData(gender, age, height, weight);
+
     /* Init buffers */
     ring_buffer_init(&rawBuf);
     ring_buffer_init(&ppBuf);
@@ -125,9 +127,6 @@ void initAlgo(char* gender, uint8_t age, uint8_t height, uint8_t weight)
     initDetectionStage(&peakScoreBuf, &peakBuf, postProcessingStage);
     initPostProcessingStage(&peakBuf, &increaseStepCallback);
 
-    /* Set user data */
-    initUserData(gender, age, height, weight);
-
     /* Set parameters */
     changeWindowSize(OPT_WINDOWSIZE);
     changeDetectionThreshold(OPT_DETECTION_THRESHOLD, OPT_DETECTION_THRESHOLD_FRAC);
@@ -147,6 +146,7 @@ void resetSteps(void)
     steps = 0;
     distance = 0;
     met = 0;
+    kcalories = 0;
 }
 
 void resetAlgo(void)
@@ -162,6 +162,10 @@ void resetAlgo(void)
 #endif
     ring_buffer_init(&peakScoreBuf);
     ring_buffer_init(&peakBuf);
+
+    kcalories = 0;
+    met = 0;
+    distance = 0;
 }
 
 steps_t getSteps(void)
@@ -171,13 +175,25 @@ steps_t getSteps(void)
 
 float getDistance(void) {
     /* constant stride length distance computation */
-    float dist = steps * stride;
+    // float dist = steps * stride;
+    // float alg_dist = distance / 10;
 
-    return distance / 1000; /* convert from ms to s*/
+    float total_dist = distance / 1000; /* convert from peak time ms to s*/
+    
+    return total_dist;
+}
+
+float getStepsPerSec(void) {
+    data_point_t lastDataPoint = getLastDataPoint();
+    float stepsPerSec = (float)steps / ((float)lastDataPoint.time / 1000);
+
+    return stepsPerSec;
 }
 
 calorie_t getCalories(void) 
 {
-    calorie_t kcal = met * bmrPerMinute / 1000; /* convert ot kcal */
-    return kcal;
+    float stepsPerSec = getStepsPerSec();
+    float weight = stepsPerSec >= 1.5 ? 2.5 : 1.0; /* take speed into account */
+
+    return (kcalories / 24 / 60 / 60 / 1000) * weight; /* convert to calories from calorie per day to ms  of activity */
 }

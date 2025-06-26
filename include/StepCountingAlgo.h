@@ -83,4 +83,15 @@ float getDistance(void);
 */
 calorie_t getCalories(void);
 
+/**
+    Returns speed of the user
+    @return steps per second
+*/
+float getStepsPerSec(void);
+
+/* Extern variables */
+extern double kcalories;
+extern float bmr;
+extern float stride;
+
 #endif

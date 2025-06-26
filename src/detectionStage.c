@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "detectionStage.h"
 #include "postProcessingStage.h"
+#include "StepCountingAlgo.h"
 #include "config.h"
 
 #ifdef DUMP_FILE
@@ -36,6 +37,9 @@ static FILE *detectionFile;
 static ring_buffer_t *inBuff;
 static ring_buffer_t *outBuff;
 static void (*nextStage)(void);
+
+static double kcal = 0;
+data_point_t lastDataPoint;
 
 static magnitude_t mean = 0;
 static accumulator_t std = 0;
@@ -66,8 +70,9 @@ void detectionStage(void)
         count++;
         if (count == 1)
         {
-            mean = dataPoint.magnitude;
+            // mean = dataPoint.magnitude;
             std = 0;
+            lastDataPoint = dataPoint;
         }
         else if (count == 2)
         {
@@ -88,12 +93,42 @@ void detectionStage(void)
             {
                 // This is a peak
                 ring_buffer_queue(outBuff, dataPoint);
-                (*nextStage)();
+
+                /* Peak time interval */
+                dataPoint.peak_time = dataPoint.time - lastDataPoint.time;
+
+                if (lastDataPoint.time == 0)
+                    dataPoint.peak_time = 0;
+
+                /* Compute MET constant */
+                if (dataPoint.magnitude < 2) {
+                    dataPoint.met = 1;
+                } else if (dataPoint.magnitude < 3) {
+                    dataPoint.met = 2; /* value from studies for walking */
+                } else if (dataPoint.magnitude < 5) {
+                    dataPoint.met = 2; /* value from studies for walking */
+                } else if (dataPoint.magnitude < 8) {
+                    dataPoint.met = 5; /* value from studies for walking */
+                } else if (dataPoint.magnitude < 10) {
+                    dataPoint.met = 10; /* values from studies for running */
+                } else if (dataPoint.magnitude < 15) {
+                    dataPoint.met = 13;
+                } else if (dataPoint.magnitude < 20) {
+                    dataPoint.met = 15;
+                } else if (dataPoint.magnitude < 25) {
+                    dataPoint.met = 17;
+                } else if (dataPoint.magnitude > 25) {
+                    dataPoint.met = 23;
+                }
+
+                /* Increase calories burned */
+                kcalories += (bmr * dataPoint.met * dataPoint.peak_time);
+
 #ifdef DUMP_FILE
                 if (detectionFile)
                 {
-                    if (!fprintf(detectionFile, "%lld, %lld, %lld\n",
-                         dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude))
+                    if (!fprintf(detectionFile, "%lld, %lld, %lld, %lld, %f, %lld, %0.12f, %0.12f, %0.12f\n",
+                         dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude, dataPoint.met, bmr, dataPoint.peak_time, kcalories))
                          puts("error writing file");
                     // if (!fprintf(detectionFile, "mean=%lld, std=%lld, threshold_int=%lld threshold_frac=%lld\n",
                     //     mean, std, threshold_int, threshold_frac))
@@ -101,6 +136,9 @@ void detectionStage(void)
                     fflush(detectionFile);
                 }
 #endif
+                (*nextStage)();
+
+                lastDataPoint = dataPoint;
             }
         }
     }

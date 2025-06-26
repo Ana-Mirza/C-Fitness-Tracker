@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "motionDetectStage.h"
+#include "StepCountingAlgo.h"
 
 #define issigned(t) (((t)(-1)) < ((t)0))
 
@@ -56,9 +57,11 @@ void motionDetectStage(void)
     {
         magnitude_t min = maxof(magnitude_t);
         magnitude_t max = 0;
+
+        data_point_t dp;
+        data_point_t prev_dp;
         for (int i = 0; i < 12; i++)
         {
-            data_point_t dp;
             ring_buffer_peek(inBuff, &dp, i);
             if (dp.magnitude > max)
                 max = dp.magnitude;
@@ -72,6 +75,15 @@ void motionDetectStage(void)
             ring_buffer_dequeue(inBuff, &dataPoint);
             ring_buffer_queue(outBuff, dataPoint);
             (*nextStage)();
+        } else {
+            ring_buffer_peek(inBuff, &dp, 1);
+            ring_buffer_peek(inBuff, &prev_dp, 0);
+
+            /* Add bmr calorie usage when there is no motion */
+            if (ring_buffer_is_full(inBuff)) {
+                float motionlessTime = dp.time - prev_dp.time;
+                kcalories += bmr * motionlessTime; /* bmr per ms */
+            }
         }
     }
 }

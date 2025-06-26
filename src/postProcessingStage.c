@@ -22,8 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "detectionStage.h"
-
 #include "postProcessingStage.h"
+#include "StepCountingAlgo.h"
+
 #ifdef DUMP_FILE
 #include <stdio.h>
 static FILE
@@ -67,9 +68,9 @@ void postProcessingStage(void)
                 stepCounter++;
 
                 /* Weighted step stripe */
-                float magAvg = 1.6;
                 float stepsPerSec = (float)stepCounter / ((float)dataPoint.time / 1000);
 
+                float magAvg = stride;
                 if (stepsPerSec < magAvg) {
                     dataPoint.weight = 0.5;
                 } else if (stepsPerSec == magAvg) {
@@ -80,21 +81,6 @@ void postProcessingStage(void)
 
                 /* Peak time interval */
                 dataPoint.peak_time = dataPoint.time - lastDataPoint.time;
-
-                /* Compute MET constant */
-                if (dataPoint.orig_magnitude < 5) {
-                    dataPoint.met = 2;
-                } else if (dataPoint.orig_magnitude < 10) {
-                    dataPoint.met = 4;
-                } else if (dataPoint.orig_magnitude < 15) {
-                    dataPoint.met = 9;
-                } else if (dataPoint.orig_magnitude < 20) {
-                    dataPoint.met = 12;
-                } else if (dataPoint.orig_magnitude < 25) {
-                    dataPoint.met = 17;
-                } else if (dataPoint.orig_magnitude > 25) {
-                    dataPoint.met = 23;
-                }
 
                 lastDataPoint = dataPoint;
                 (*stepCallback)();

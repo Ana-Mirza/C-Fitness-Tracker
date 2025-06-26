@@ -88,7 +88,7 @@ void scoringStage(void)
         data_point_t out;
         out.time = midpointData.time;
         out.magnitude = scorePeak;
-        out.orig_magnitude = midpointData.orig_magnitude;
+        out.orig_magnitude = midpointData.magnitude;
         ring_buffer_queue(outBuff, out);
         ring_buffer_dequeue(inBuff, &midpointData);
         (*nextStage)();
