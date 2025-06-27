@@ -25,6 +25,8 @@ SOFTWARE.
 #define DETECTION_STAGE_H
 #include "ringbuffer.h"
 
+extern float rawMagnitudeMean;
+
 void initDetectionStage(ring_buffer_t *inBuff, ring_buffer_t *outBuff, void (*nextStage)(void));
 void detectionStage(void);
 void resetDetection(void);

@@ -89,6 +89,8 @@ calorie_t getCalories(void);
 */
 float getStepsPerSec(void);
 
+float getMeanAvg(void);
+
 /* Extern variables */
 extern double kcalories;
 extern float bmr;

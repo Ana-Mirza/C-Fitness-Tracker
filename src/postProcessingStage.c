@@ -32,6 +32,9 @@ static FILE
 static FILE *postProcFile;
 #endif
 
+float meanPeakTime;
+float dist;
+
 static steps_t stepCounter;
 static ring_buffer_t *inBuff;
 static data_point_t lastDataPoint;
@@ -45,6 +48,8 @@ void initPostProcessingStage(ring_buffer_t *pInBuff, void (*stepCallbackIn)(void
     stepCounter = 0;
     lastDataPoint.time = 0;
     lastDataPoint.magnitude = 0;
+    meanPeakTime = 0;
+    dist = 0;
 
 #ifdef DUMP_FILE
     postProcFile = fopen(DUMP_POSTPROC_FILE_NAME, "w+");
@@ -57,6 +62,7 @@ void postProcessingStage(void)
     {
         data_point_t dataPoint;
         ring_buffer_dequeue(inBuff, &dataPoint);
+
         if (lastDataPoint.time == 0)
         {
             lastDataPoint = dataPoint;
@@ -67,20 +73,27 @@ void postProcessingStage(void)
             {
                 stepCounter++;
 
+                /* Peak time interval */
+                dataPoint.peak_time = dataPoint.time - lastDataPoint.time;
+
+                /* compute mean step length */
+                meanPeakTime = (dataPoint.peak_time + ((stepCounter - 1) * meanPeakTime)) / stepCounter;
+
                 /* Weighted step stripe */
                 float stepsPerSec = (float)stepCounter / ((float)dataPoint.time / 1000);
 
-                float magAvg = stride;
-                if (stepsPerSec < magAvg) {
+                float magAvg = stride / 2; /* needs to be calibrated */
+                float dynamicStepLen = (float) (dataPoint.peak_time);
+
+                if (dynamicStepLen < magAvg) {
                     dataPoint.weight = 0.5;
-                } else if (stepsPerSec == magAvg) {
+                } else if (dynamicStepLen == magAvg) {
                     dataPoint.weight = 1.0;
-                } else if (stepsPerSec > magAvg) {
+                } else if (dynamicStepLen > magAvg) {
                     dataPoint.weight = 1.5;
                 }
 
-                /* Peak time interval */
-                dataPoint.peak_time = dataPoint.time - lastDataPoint.time;
+                float rawMean = getMagAvg();
 
                 lastDataPoint = dataPoint;
                 (*stepCallback)();
@@ -88,8 +101,8 @@ void postProcessingStage(void)
 #ifdef DUMP_FILE
                 if (postProcFile)
                 {
-                    if (!fprintf(postProcFile, "%lld, %lld, %lld, %lld, %lld, %f, %f\n", 
-                        dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude, dataPoint.met, dataPoint.peak_time, dataPoint.weight, stepsPerSec))
+                    if (!fprintf(postProcFile, "%lld, %lld, %lld, %lld, %f, %f, %f, %f\n", 
+                        dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude, (int64_t)rawMagnitudeMean, dataPoint.met, dynamicStepLen, magAvg, dataPoint.weight))
                         puts("error writing file");
                     fflush(postProcFile);
                 }

@@ -32,6 +32,7 @@ SOFTWARE.
 #include "postProcessingStage.h"
 
 #include "string.h"
+#include <stdio.h>
 
 #define STRIDECONST 0.414
 
@@ -175,10 +176,9 @@ steps_t getSteps(void)
 
 float getDistance(void) {
     /* constant stride length distance computation */
-    // float dist = steps * stride;
-    // float alg_dist = distance / 10;
+    // float static_dist = steps * stride;
 
-    float total_dist = distance / 1000; /* convert from peak time ms to s*/
+    float total_dist = distance / 1000;
     
     return total_dist;
 }
@@ -192,8 +192,9 @@ float getStepsPerSec(void) {
 
 calorie_t getCalories(void) 
 {
-    float stepsPerSec = getStepsPerSec();
-    float weight = stepsPerSec >= 1.5 ? 2.5 : 1.0; /* take speed into account */
+    return (kcalories / 24 / 60 / 60 / 1000); /* convert to calories from calorie per day to ms of activity */
+}
 
-    return (kcalories / 24 / 60 / 60 / 1000) * weight; /* convert to calories from calorie per day to ms  of activity */
+float getMeanAvg(void) {
+    return meanPeakTime;
 }

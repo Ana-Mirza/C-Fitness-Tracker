@@ -25,6 +25,8 @@ SOFTWARE.
 #define POST_PROCESSING_STAGE_H
 #include "ringbuffer.h"
 
+extern float meanPeakTime;
+
 void initPostProcessingStage(ring_buffer_t *pInBuff, void (*stepCallback)(void));
 void postProcessingStage(void);
 void resetPostProcess(void);

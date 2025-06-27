@@ -42,6 +42,7 @@ static double kcal = 0;
 data_point_t lastDataPoint;
 
 static magnitude_t mean = 0;
+float rawMagnitudeMean = 0;
 static accumulator_t std = 0;
 static time_accel_t count = 0;
 static int16_t threshold_int = 0;
@@ -52,6 +53,7 @@ void initDetectionStage(ring_buffer_t *pInBuff, ring_buffer_t *peakBufIn, void (
     inBuff = pInBuff;
     outBuff = peakBufIn;
     nextStage = pNextStage;
+    rawMagnitudeMean = 0;
     mean = 0;
     std = 0;
 
@@ -70,18 +72,21 @@ void detectionStage(void)
         count++;
         if (count == 1)
         {
-            // mean = dataPoint.magnitude;
+            mean = dataPoint.magnitude;
             std = 0;
             lastDataPoint = dataPoint;
+            rawMagnitudeMean = (float)dataPoint.orig_magnitude;
         }
         else if (count == 2)
         {
             mean = (mean + dataPoint.magnitude) / 2;
+            rawMagnitudeMean = (float) (rawMagnitudeMean + (float)dataPoint.orig_magnitude) / 2.0;
             std = sqrt(((dataPoint.magnitude - mean) * (dataPoint.magnitude - mean)) + ((oMean - mean) * (oMean - mean))) / 2;
         }
         else
         {
             mean = (dataPoint.magnitude + ((count - 1) * mean)) / count;
+            rawMagnitudeMean = (float)(dataPoint.orig_magnitude + (float)((count - 1) * rawMagnitudeMean)) / (float)count;
             accumulator_t part1 = ((std * std) / (count - 1)) * (count - 2);
             accumulator_t part2 = ((oMean - mean) * (oMean - mean));
             accumulator_t part3 = ((dataPoint.magnitude - mean) * (dataPoint.magnitude - mean)) / count;
@@ -101,23 +106,21 @@ void detectionStage(void)
                     dataPoint.peak_time = 0;
 
                 /* Compute MET constant */
-                if (dataPoint.magnitude < 2) {
+                if (dataPoint.magnitude < 200) {
                     dataPoint.met = 1;
-                } else if (dataPoint.magnitude < 3) {
-                    dataPoint.met = 2; /* value from studies for walking */
-                } else if (dataPoint.magnitude < 5) {
-                    dataPoint.met = 2; /* value from studies for walking */
-                } else if (dataPoint.magnitude < 8) {
-                    dataPoint.met = 5; /* value from studies for walking */
-                } else if (dataPoint.magnitude < 10) {
-                    dataPoint.met = 10; /* values from studies for running */
-                } else if (dataPoint.magnitude < 15) {
+                } else if (dataPoint.magnitude < 500) {
+                    dataPoint.met = 2;
+                } else if (dataPoint.magnitude < 800) {
+                    dataPoint.met = 5;
+                } else if (dataPoint.magnitude < 1000) {
+                    dataPoint.met = 10;
+                } else if (dataPoint.magnitude < 1500) {
                     dataPoint.met = 13;
-                } else if (dataPoint.magnitude < 20) {
+                } else if (dataPoint.magnitude < 2000) {
                     dataPoint.met = 15;
-                } else if (dataPoint.magnitude < 25) {
+                } else if (dataPoint.magnitude < 2500) {
                     dataPoint.met = 17;
-                } else if (dataPoint.magnitude > 25) {
+                } else if (dataPoint.magnitude > 2500) {
                     dataPoint.met = 23;
                 }
 
@@ -127,8 +130,8 @@ void detectionStage(void)
 #ifdef DUMP_FILE
                 if (detectionFile)
                 {
-                    if (!fprintf(detectionFile, "%lld, %lld, %lld, %lld, %f, %lld, %0.12f, %0.12f, %0.12f\n",
-                         dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude, dataPoint.met, bmr, dataPoint.peak_time, kcalories))
+                    if (!fprintf(detectionFile, "%lld, %lld, %lld, %lld, %f, %lld, %0.12f, %f\n",
+                         dataPoint.time, dataPoint.magnitude, dataPoint.orig_magnitude, dataPoint.met, bmr, dataPoint.peak_time, kcalories, rawMagnitudeMean))
                          puts("error writing file");
                     // if (!fprintf(detectionFile, "mean=%lld, std=%lld, threshold_int=%lld threshold_frac=%lld\n",
                     //     mean, std, threshold_int, threshold_frac))
@@ -149,6 +152,7 @@ void resetDetection(void)
     std = 0;
     mean = 0;
     count = 0;
+    rawMagnitudeMean = 0;
 }
 
 void changeDetectionThreshold(int16_t whole, int16_t frac)
@@ -158,5 +162,5 @@ void changeDetectionThreshold(int16_t whole, int16_t frac)
 }
 
 magnitude_t getMagAvg(void) {
-    return mean;
+    return rawMagnitudeMean;
 }
